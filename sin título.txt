@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/><meta name="theme-color" content="#060D2E"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-title" content="Sopaipas Chile"/><title> sopaipas_chile</title><link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/><style>:root{--gold:#FFD700;--gold-dark:#C8960C;--gold-light:#FFE97A;--blue-deep:#060D2E;--blue-mid:#0D1B5E;--blue-card:#0F1E5A;--blue-bright:#2563EB;--blue-glow:#3B6BF5;--red:#EF4444;--green:#22C55E;--silver:#94A3B8;--white:#FFFFFF;--trophy:#FBBF24}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--blue-deep);color:var(--white);font-family:'Rajdhani',sans-serif}.header{padding:12px;background:#0d1b5e}.page{padding:12px}.card{background:#152060;border-radius:12px;padding:10px;margin-bottom:10px}</style></head><body>
+
+<div class="header"> sopaipas_chile</div>
+
+<div class="page" id="pageRoster"></div>
+<div class="page" id="pageWar"></div>
+<div class="page" id="pageRankings"></div>
+<div class="page" id="pageStats"></div>
+
+<script>
+const CLAN_TAG = '#G09GCYPJ';
+const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjAxYjI1YzFmLTk1MjktNDJlNi04NjgwLTVlZjkzOTJmOWUwNCIsImlhdCI6MTc3Mzg2MTU3MCwic3ViIjoiZGV2ZWxvcGVyLzJkOTFmMzZhLTc0YzAtZGNhMi1kZTNjLTFlYjUyNGE3ODAxYyIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIzNC4yOC4xNy4yMTQiXSwidHlwZSI6ImNsaWVudCJ9XX0.xnPpZ3eJVu22ZqTgQ5IWIBVKZrJoqvTjLJVabjssfLSk9Ddn08TdLy34pBMuMR9AVvV4-BlTGWYtg7T-Nu2sYA";
+
+let currentRace=null;
+let snapshots=JSON.parse(localStorage.getItem('cr_snapshots')||'[]');
+
+async function apiCall(endpoint){
+  const tag=CLAN_TAG.replace('#','%23');
+  const url=`https://api.clashroyale.com/v1${endpoint.replace('{tag}',tag)}`;
+  const proxy="https://api.allorigins.win/raw?url=";
+
+  const res=await fetch(proxy+encodeURIComponent(url),{
+    headers:{Authorization:`Bearer ${API_KEY}`}
+  });
+
+  if(!res.ok) throw new Error("API error");
+  return await res.json();
+}
+
+// ROSTER
+async function loadRoster(){
+  const data=await apiCall('/clans/{tag}');
+  let html=`<div class="card"><b>${data.name}</b><br> ${data.members}<br> ${data.clanScore}</div>`;
+  document.getElementById('pageRoster').innerHTML=html;
+}
+
+// WAR
+async function loadWar(){
+  const d=await apiCall('/clans/{tag}/currentriverrace');
+  currentRace=d;
+
+  const players=(d.clan?.participants||[]).sort((a,b)=>b.fame-a.fame);
+
+  let html=`<div class="card"><b>Guerra</b><br>`;
+  players.forEach((p,i)=>{
+    html+=`${i+1}. ${p.name} - ${p.fame}<br>`;
+  });
+  html+=`</div>`;
+
+  document.getElementById('pageWar').innerHTML=html;
+}
+
+// RANKING
+function renderRanking(){
+  if(!currentRace)return;
+  const players=(currentRace.clan?.participants||[]).sort((a,b)=>b.fame-a.fame).slice(0,10);
+
+  let html=`<div class="card"><b>Top 10</b><br>`;
+  players.forEach((p,i)=>{
+    html+=`${i+1}. ${p.name} - ${p.fame}<br>`;
+  });
+  html+=`</div>`;
+
+  document.getElementById('pageRankings').innerHTML=html;
+}
+
+// STATS
+async function loadStats(){
+  const c=await apiCall('/clans/{tag}');
+  let html=`<div class="card"> ${c.members}<br> ${c.clanScore}<br> ${c.clanWarTrophies}</div>`;
+  document.getElementById('pageStats').innerHTML=html;
+}
+
+// INIT
+async function init(){
+  await loadRoster();
+  await loadWar();
+  renderRanking();
+  await loadStats();
+}
+init();
+
+</script>
+</body></html>
