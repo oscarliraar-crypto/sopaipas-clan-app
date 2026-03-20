@@ -1,45 +1,59 @@
-// server.js
-const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
-require('dotenv').config();
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚔️ Sopaipas Chile</title>
+<style>
+  body{margin:0;font-family:'Rajdhani',sans-serif;background:#060D2E;color:white;min-height:100vh;text-align:center;}
+  .header{padding:15px;background:#0D1B5E;color:#FFD700;font-weight:bold;}
+  .card{background:#0F1E5A;margin:10px;padding:15px;border-radius:10px;}
+  .loading{margin-top:40px;color:#aaa;}
+</style>
+</head>
+<body>
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+<div class="header">⚔️ Sopaipas Chile</div>
+<div id="content" class="loading">Cargando datos...</div>
 
-app.use(cors());
-app.use(express.json());
+<script>
+  // 🔥 SOLO CAMBIA ESTO 👍🏻
+  const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImU4YTM1NzFkLWE4YjEtNGE3My05MjkxLTBiYThhM2MxYmE3NiIsImlhdCI6MTc3Mzk2OTYwNywic3ViIjoiZGV2ZWxvcGVyL2ZhYTg5ODY3LTMzNGYtN zU5MC0wMTkwLTUwNTY0NTgzNTMzMCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxODEuNDMuMjA5Ljc0Il0sInR5cGUiOiJjbGllbnQifV19.7CJoXTDZ9mLSdhZzU2ko4uOzHDBUfEDT_z964gcQmS6goJDSAbKWinDaaoX-c7x0wEYGdzz8T9l7aEJUycOrGg"; // Reemplaza el dedito por tu API Key
+  const CLAN_TAG = "#G09GCYPJ";
 
-// 🔥 SOLO CAMBIA ESTO 👍🏻
-const API_KEY = process.env.CLAN_API_KEY; // Aquí reemplazas eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImU4YTM1NzFkLWE4YjEtNGE3My05MjkxLTBiYThhM2MxYmE3NiIsImlhdCI6MTc3Mzk2OTYwNywic3ViIjoiZGV2ZWxvcGVyL2ZhYTg5ODY3LTMzNGYtN zU5MC0wMTkwLTUwNTY0NTgzNTMzMCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxODEuNDMuMjA5Ljc0Il0sInR5cGUiOiJjbGllbnQifV19.7CJoXTDZ9mLSdhZzU2ko4uOzHDBUfEDT_z964gcQmS6goJDSAbKWinDaaoX-c7x0wEYGdzz8T9l7aEJUycOrGg por tu API Key en el archivo .env
-const CLAN_TAG = '#G09GCYPJ';
-
-app.get('/clan', async (req, res) => {
-  try {
-    const tag = CLAN_TAG.replace('#','%23');
-    const response = await fetch(`https://api.clashroyale.com/v1/clans/${tag}`, {
-      headers: { Authorization: `Bearer ${API_KEY}` }
-    });
-    if (!response.ok) return res.status(400).json({ error: '❌ API Key inválida o error en la API' });
-    const data = await response.json();
-    res.json(data);
-  } catch (e) {
-    res.status(500).json({ error: '❌ Error de conexión' });
+  async function loadClan() {
+    const proxy = "https://corsproxy.io/?";
+    const url = `${proxy}https://api.clashroyale.com/v1/clans/${encodeURIComponent(CLAN_TAG)}`;
+    try {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${API_KEY}` }
+      });
+      if(!res.ok){
+        document.getElementById("content").innerHTML = "❌ API Key inválida o error en la API";
+        return;
+      }
+      const data = await res.json();
+      renderClan(data);
+    } catch(e) {
+      document.getElementById("content").innerHTML = "❌ Failed to fetch (problema de conexión o CORS)";
+    }
   }
-});
 
-app.get('/clan/war', async (req,res) => {
-  try {
-    const tag = CLAN_TAG.replace('#','%23');
-    const response = await fetch(`https://api.clashroyale.com/v1/clans/${tag}/currentriverrace`, {
-      headers: { Authorization: `Bearer ${API_KEY}` }
-    });
-    if (!response.ok) return res.status(400).json({ error: '❌ API Key inválida o error en la API' });
-    const data = await response.json();
-    res.json(data);
-  } catch (e) {
-    res.status(500).json({ error: '❌ Error de conexión' });
+  function renderClan(data) {
+    document.getElementById("content").innerHTML = `
+      <div class="card">
+        <h2>${data.name}</h2>
+        <p>🏆 Puntos: ${data.clanScore}</p>
+        <p>👥 Miembros: ${data.members}</p>
+        <p>⚔️ Guerra: ${data.clanWarTrophies}</p>
+        <p>📍 Ubicación: ${data.location?.name || 'Chile'}</p>
+      </div>
+    `;
   }
-});
 
-app.listen(PORT, () => console.log(`Backend corriendo en http://localhost:${PORT}`));
+  // 🚀 INICIO
+  loadClan();
+</script>
+
+</body>
+</html>
