@@ -1,95 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>⚔️ sopaipas_chile</title>
-
 <style>
-body{
-  margin:0;
-  font-family: Arial;
-  background:#060D2E;
-  color:white;
-  text-align:center;
-}
-.header{
-  padding:15px;
-  background:#0D1B5E;
-  color:#FFD700;
-  font-weight:bold;
-}
-.card{
-  background:#0F1E5A;
-  margin:10px;
-  padding:15px;
-  border-radius:10px;
-}
-.loading{
-  margin-top:40px;
-  color:#aaa;
-}
+body{margin:0;font-family:'Rajdhani',sans-serif;background:#060D2E;color:#fff;min-height:100vh;}
+.header{padding:15px;background:#0D1B5E;color:#FFD700;font-weight:bold;text-align:center;}
+.card{background:#0F1E5A;margin:10px;padding:15px;border-radius:10px;}
+.loading{text-align:center;padding:40px;color:#aaa;}
+.error{color:#EF4444;text-align:center;padding:20px;}
 </style>
 </head>
-
 <body>
 
-<div class="header">
-⚔️ sopaipas_chile
-</div>
+<div class="header">⚔️ sopaipas_chile</div>
 
-<div id="content" class="loading">
-Cargando datos...
-</div>
+<div id="content" class="loading">Cargando datos...</div>
 
 <script>
+// 🔥 SOLO CAMBIA ESTO, BORRA EL 👍🏻 Y PON TU API KEY
+const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImU4YTM1NzFkLWE4YjEtNGE3My05MjkxLTBiYThhM2MxYmE3NiIsImlhdCI6MTc3Mzk2OTYwNywic3ViIjoiZGV2ZWxvcGVyL2ZhYTg5ODY3LTMzNGYtN zU5MC0wMTkwLTUwNTY0NTgzNTMzMCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxODEuNDMuMjA5Ljc0Il0sInR5cGUiOiJjbGllbnQifV19.7CJoXTDZ9mLSdhZzU2ko4uOzHDBUfEDT_z964gcQmS6goJDSAbKWinDaaoX-c7x0wEYGdzz8T9l7aEJUycOrGg";  // <- reemplaza este emoji con tu API Key
+const CLAN_TAG = "#G09GCYPJ"; // Tu clan tag
 
-const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImU4YTM1NzFkLWE4YjEtNGE3My05MjkxLTBiYThhM2MxYmE3NiIsImlhdCI6MTc3Mzk2OTYwNywic3ViIjoiZGV2ZWxvcGVyL2ZhYTg5ODY3LTMzNGYtN zU5MC0wMTkwLTUwNTY0NTgzNTMzMCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxODEuNDMuMjA5Ljc0Il0sInR5cGUiOiJjbGllbnQifV19.7CJoXTDZ9mLSdhZzU2ko4uOzHDBUfEDT_z964gcQmS6goJDSAbKWinDaaoX-c7x0wEYGdzz8T9l7aEJUycOrGg"; // 👈 pega tu API aquí
-const CLAN_TAG = "#G09GCYPJ";
+// Proxy para evitar problemas de CORS
+const CORS_PROXY = "https://corsproxy.io/?";
 
+// Función genérica para llamar a la API de Clash Royale
 async function apiCall(endpoint){
-  const tag = CLAN_TAG.replace('#','%23');
-  const url = `https://api.clashroyale.com/v1${endpoint.replace('{tag}',tag)}`;
-  const proxy = "https://corsproxy.io/?";
-
-  try{
-    const res = await fetch(proxy + encodeURIComponent(url),{
-      headers:{
-        Authorization:`Bearer ${API_KEY}`
-      }
-    });
-
-    if(!res.ok){
-      document.getElementById("content").innerHTML = "❌ Error API o KEY inválida";
-      return;
+    const tag = CLAN_TAG.replace('#','%23');
+    const url = `https://api.clashroyale.com/v1${endpoint.replace('{tag}',tag)}`;
+    try{
+        const res = await fetch(CORS_PROXY + encodeURIComponent(url),{
+            headers:{ Authorization:`Bearer ${API_KEY}` }
+        });
+        if(!res.ok){
+            document.getElementById("content").innerHTML = '<div class="error">❌ API Key inválida o error en la API</div>';
+            return null;
+        }
+        return await res.json();
+    }catch(e){
+        document.getElementById("content").innerHTML = '<div class="error">❌ Error de conexión</div>';
+        return null;
     }
-
-    return await res.json();
-
-  }catch(e){
-    document.getElementById("content").innerHTML = "❌ Error de conexión";
-  }
 }
 
-// ✅ FUNCIÓN ARREGLADA
+// Función para cargar datos del clan
 async function loadClan(){
-  const data = await apiCall('/clans/{tag}');
-  if(!data) return;
-
-  document.getElementById("content").innerHTML = `
-    <div class="card">
-      <h2>${data.name}</h2>
-      <p>🏆 Puntos: ${data.clanScore}</p>
-      <p>👥 Miembros: ${data.members}</p>
-      <p>⚔️ Guerra: ${data.clanWarTrophies}</p>
-    </div>
-  `;
+    const data = await apiCall('/clans/{tag}');
+    if(!data) return;
+    document.getElementById("content").innerHTML = `
+        <div class="card">
+            <h2>${data.name}</h2>
+            <p>🏆 Puntos: ${data.clanScore}</p>
+            <p>👥 Miembros: ${data.members}</p>
+            <p>⚔️ Guerra: ${data.clanWarTrophies}</p>
+            <p>🔒 Trofeos requeridos: ${data.requiredTrophies}</p>
+            <p>🌎 Ubicación: ${data.location?.name || 'Chile'}</p>
+            <p>📝 Descripción: ${data.description || 'Sin descripción'}</p>
+        </div>
+    `;
 }
 
-// 🚀 INICIO
-loadClan();
+// Función para cargar la guerra actual (River Race / Coliseo)
+async function loadWar(){
+    const warData = await apiCall('/clans/{tag}/currentriverrace');
+    if(!warData) return;
+    const ourClan = (warData.clans || []).find(c => c.tag.replace('#','').toUpperCase() === CLAN_TAG.replace('#','').toUpperCase()) || {participants:[], fame:0};
+    const participantsHTML = (ourClan.participants || []).sort((a,b)=>b.fame-a.fame)
+        .map((p,i)=>`<div class="card">
+            <b>${i+1}. ${p.name}</b>
+            <p>✨ Fama: ${p.fame}</p>
+            <p>⚔️ Barajas hoy: ${p.decksUsedToday || 0}</p>
+            <p>🚤 Ataques: ${p.boatAttacks || 0}</p>
+            <p>🃏 Total barajas: ${p.decksUsed || 0}</p>
+            ${(p.decksUsedToday===0?'<p style="color:#EF4444">😴 Sin jugar hoy</p>':'')}
+        </div>`).join('');
+    document.getElementById("content").innerHTML = `
+        <div class="card"><h2>${warData.periodType==='colosseum'?'⚔️ COLISEO':'🚣 CARRERA DEL RÍO'}</h2>
+        <p>Semana ${(warData.sectionIndex||0)+1}</p>
+        <p>✨ Fama total: ${ourClan.fame}</p></div>
+        ${participantsHTML || '<p>No hay participantes</p>'}
+    `;
+}
+
+// Función inicial para cargar todo
+async function init(){
+    await loadClan();
+    await loadWar();
+}
+
+// 🚀 Ejecuta todo al cargar
+init();
 
 </script>
-
 </body>
 </html>
